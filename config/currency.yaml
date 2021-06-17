@@ -1,0 +1,13 @@
+postgres:
+  database: aiohttp_test
+  user: aiohttp
+  password: aiohttp
+  host: localhost
+  port: 5432
+  minsize: 1
+  maxsize: 5
+
+
+redis:
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
