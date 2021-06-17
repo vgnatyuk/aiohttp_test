@@ -1,4 +1,4 @@
-from views import *
+from views import convert, database_merge
 
 
 def setup_routes(app):

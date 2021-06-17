@@ -1,37 +1,6 @@
-from collections import defaultdict
-
 import json
 from aiohttp import web
 import db
-
-CURRENCY = {
-    'USD': {'RUR': 72.234, 'EUR': 0.825, "GPB": 0.701, },
-    'RUR': {'USD': 0.014, 'EUR': 0.011, "GPB": 0.010, },
-    'GPB': {'RUR': 101.734, 'EUR': 1.163, "USD": 1.409, },
-    'EUR': {'RUR': 87.494, 'GPB': 0.860, "USD": 1.112, },
-}
-
-
-async def index(request):
-    async with request.app['db'].acquire() as conn:
-        cursor = await conn.execute(db.currency.select())
-        records = await cursor.fetchall()
-        currencys = [dict(currency) for currency in records]
-        redis = request.app['redis_pool']
-
-        currency_dict = defaultdict(lambda: {})
-        for row in currencys:
-            for key, value in row.items():
-                if key == 'id':
-                    continue
-                if key == "currency":
-                    currency = value
-                    continue
-                currency_dict[currency][key] = value
-        for k, v in currency_dict.items():
-            await redis.set(k, json.dumps(v))
-
-        return web.Response(text=str(dict(currency_dict)))
 
 
 async def convert(request):
@@ -69,13 +38,12 @@ async def convert(request):
 
 async def database_merge(request):
     merge = request.query.get('merge', None)
-    result = ''
 
     try:
         merge = int(merge)
     except (ValueError, TypeError) as exc:
         result = str(exc)
-        # return web.json_response({'success': False, 'result': result}, status=400)
+        return web.json_response({'success': False, 'result': result}, status=400)
 
     if merge == 1:
         # rewrite
@@ -92,7 +60,7 @@ async def database_merge(request):
     else:
         success = False
         status = 400
-        result = "incorrect data " + result
+        result = "incorrect data"
 
     response = [
         {
@@ -124,7 +92,6 @@ async def rewrite(request):
         cursor = await conn.execute(db.currency.select().where(db.currency.c.currency == currency))
         records = await cursor.fetchall()
         currencys = [dict(currency) for currency in records]
-        print(currencys)
         for k, v in currencys[0].items():
             if k == 'USD':
                 if USD is False:
@@ -145,7 +112,6 @@ async def rewrite(request):
                     currencys[0][k] = None
                     continue
                 currencys[0][k] = RUR
-        print(currencys)
         statement = db.currency.update().values({db.currency.c.USD: currencys[0]['USD'],
                                                  db.currency.c.GBP: currencys[0]['GBP'],
                                                  db.currency.c.EUR: currencys[0]['EUR'],
