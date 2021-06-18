@@ -96,13 +96,22 @@ async def rewrite(request):
             if k == 'USD':
                 if USD is False:
                     continue
+                if USD == 'None':
+                    currencys[0][k] = None
+                    continue
                 currencys[0][k] = USD
             elif k == 'GBP':
                 if GBP is False:
                     continue
+                if GBP == 'None':
+                    currencys[0][k] = None
+                    continue
                 currencys[0][k] = GBP
             elif k == 'EUR':
                 if EUR is False:
+                    continue
+                if EUR == 'None':
+                    currencys[0][k] = None
                     continue
                 currencys[0][k] = EUR
             elif k == 'RUR':
