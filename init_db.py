@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, MetaData
 
-from aiohttp_polls.settings import config
-from aiohttp_polls.db import currency
+from aiohttp_currency.settings import config
+from aiohttp_currency.db import currency
 
 DSN = "postgresql://{user}:{password}@{host}:{port}/{database}"
 

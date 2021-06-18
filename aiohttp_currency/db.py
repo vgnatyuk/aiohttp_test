@@ -1,8 +1,7 @@
 import aiopg
 from aiopg import sa
 from sqlalchemy import (
-    MetaData, Table, Column, ForeignKey,
-    Integer, String, Date, Float
+    MetaData, Table, Column, String, Float
 )
 
 meta = MetaData()

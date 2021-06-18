@@ -6,7 +6,7 @@ from aiohttp_session import setup as setup_session
 from aiohttp_session.redis_storage import RedisStorage
 from aiohttp import web
 
-from aiohttp_polls import db
+from aiohttp_currency import db
 from settings import config
 from routes import setup_routes
 from db import init_pg, close_pg
