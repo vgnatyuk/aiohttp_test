@@ -85,47 +85,37 @@ async def rewrite(request):
     EUR = request.query.get('EUR', False)
     RUR = request.query.get('RUR', False)
 
+    handlers = {
+        'USD': USD,
+        'GBP': GBP,
+        'EUR': EUR,
+        'RUR': RUR,
+    }
+
     async with request.app['db'].acquire() as conn:
         cursor = await conn.execute(db.currency.select().where(db.currency.c.currency == currency))
         records = await cursor.fetchall()
         currencys = [dict(currency) for currency in records]
         if not currencys:
             return False, 400, f"Haven't data about {currency} or missing argument: 'currency'"
-        for k, v in currencys[0].items():
-            if k == 'USD':
-                if USD is False:
-                    continue
-                if USD == 'None':
-                    currencys[0][k] = None
-                    continue
-                currencys[0][k] = USD
-            elif k == 'GBP':
-                if GBP is False:
-                    continue
-                if GBP == 'None':
-                    currencys[0][k] = None
-                    continue
-                currencys[0][k] = GBP
-            elif k == 'EUR':
-                if EUR is False:
-                    continue
-                if EUR == 'None':
-                    currencys[0][k] = None
-                    continue
-                currencys[0][k] = EUR
-            elif k == 'RUR':
-                if RUR is False:
-                    continue
-                if RUR == 'None':
-                    currencys[0][k] = None
-                    continue
-                currencys[0][k] = RUR
-        statement = db.currency.update().values({db.currency.c.USD: currencys[0]['USD'],
+
+        for key in currencys[0].keys():
+            if key == 'currency':
+                continue
+            new_currency_value = handlers[key]
+            if new_currency_value is False:
+                continue
+            elif new_currency_value == 'None':
+                currencys[0][key] = None
+                continue
+            currencys[0][key] = new_currency_value
+
+        update_db = db.currency.update().values({db.currency.c.USD: currencys[0]['USD'],
                                                  db.currency.c.GBP: currencys[0]['GBP'],
                                                  db.currency.c.EUR: currencys[0]['EUR'],
                                                  db.currency.c.RUR: currencys[0]['RUR'],
                                                  }).where(db.currency.c.currency == currencys[0]['currency'])
-        await conn.execute(statement)
+        await conn.execute(update_db)
         await init_redis(request.app)
 
         return True, 200, 'rewrite'
