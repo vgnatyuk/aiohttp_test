@@ -47,10 +47,7 @@ async def database_merge(request):
 
     if merge == 1:
         # rewrite
-        success = True
-        status = 200
-        result = 'rewrite'
-        await rewrite(request)
+        success, status, result = await rewrite(request)
     elif merge == 0:
         # erase
         success = True
@@ -92,6 +89,8 @@ async def rewrite(request):
         cursor = await conn.execute(db.currency.select().where(db.currency.c.currency == currency))
         records = await cursor.fetchall()
         currencys = [dict(currency) for currency in records]
+        if not currencys:
+            return False, 400, f"Haven't data about {currency} or missing argument: 'currency'"
         for k, v in currencys[0].items():
             if k == 'USD':
                 if USD is False:
@@ -128,3 +127,6 @@ async def rewrite(request):
                                                  }).where(db.currency.c.currency == currencys[0]['currency'])
         await conn.execute(statement)
         await init_redis(request.app)
+
+        return True, 200, 'rewrite'
+
